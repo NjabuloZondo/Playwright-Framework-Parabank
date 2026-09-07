@@ -1,6 +1,8 @@
 import {Locator, Page, expect} from "@playwright/test";
 import {faker} from "@faker-js/faker";
+import path from "path";
 //import Logger from '../utils/logger.util';
+const authFile = path.join(__dirname, '../playwright/.auth/user.json');
 
 export class ParaBankSignupPage {
     page: Page;
@@ -16,6 +18,8 @@ export class ParaBankSignupPage {
     passwordInput: Locator;
     repeatedPasswordInput: Locator;
     registerButton: Locator;
+    userAlreadyExistsError: Locator;
+
 
     constructor(page: Page) {
         this.page = page;
@@ -31,6 +35,7 @@ export class ParaBankSignupPage {
         this.passwordInput = page.locator('[id="customer.password"]');
         this.repeatedPasswordInput = page.locator('#repeatedPassword');
         this.registerButton = page.getByRole('button', { name: 'Register' });
+        this.userAlreadyExistsError = page.locator("#customer.username.errors");
 
 
     }
@@ -52,6 +57,26 @@ export class ParaBankSignupPage {
         
     }
 
+    async AccountCreation(){
+        await this.firstNameInput.fill('Nqubeko');
+        await this.lastNameInput.fill('Zondo');
+        await this.streetInput.fill('7825 midrand');
+        await this.cityInput.fill('madrad');
+        await this.stateInput.fill('noordwyk');
+        await this.zipCodeInput.fill('1687');
+        await this.phoneNumberInput.fill('0812565178');
+        await this.ssnInput.fill('231');
+        await this.usernameInput.fill('Thuba');
+        await this.passwordInput.fill('Test@01');
+        await this.repeatedPasswordInput.fill('Test@01');
+        await this.registerButton.click();
+        await expect(this.page.getByRole('heading', { name: 'Welcome Thuba' })).toBeVisible();
+    }
+
+    
+
+
+
     async fillCredentials(password: string, username: string){
         await this.usernameInput.fill(username);
         await this.passwordInput.fill(password);
@@ -62,39 +87,27 @@ export class ParaBankSignupPage {
         await this.registerButton.click();
     }
 
+    async isErrorVisible(){
+        await expect(this.userAlreadyExistsError).toBeVisible();
+        //await expect(this.userAlreadyExistsError).toHaveText('This username already exists.');
+    }
 
+    async verifyAccountCreation(username: string){
+        const headerText = await this.page.locator('h1').textContent();
+        const rightPanelText = await this.page.locator('#rightPanel').textContent();
 
+        if (headerText && rightPanelText) {
+            await expect(headerText.includes(`Welcome ${username}`)).toBe(true);
+            await expect(rightPanelText.includes(`Your account was created successfully. You are now logged in as ${username}.`)).toBe(true);
+        }
+        
+    }
 
 
 
 
 }
 
-// await page.goto('https://parabank.parasoft.com/parabank/register.htm');
-// await page.locator('[id="customer.firstName"]').click();
-// await page.locator('[id="customer.firstName"]').fill('Njabulo');
-// await page.locator('[id="customer.firstName"]').press('Tab');
-// await page.locator('[id="customer.lastName"]').click();
-// await page.locator('[id="customer.lastName"]').fill('Zondo');
-// await page.locator('[id="customer.address.street"]').click();
-// await page.locator('[id="customer.address.street"]').fill('389B san ridge');
-// await page.locator('[id="customer.address.city"]').click();
-// await page.locator('[id="customer.address.city"]').fill('midrand');
-// await page.locator('[id="customer.address.state"]').click();
-// await page.locator('[id="customer.address.state"]').fill('noordwyk');
-// await page.locator('[id="customer.address.zipCode"]').click();
-// await page.locator('[id="customer.address.zipCode"]').fill('1687');
-// await page.locator('[id="customer.phoneNumber"]').click();
-// await page.locator('[id="customer.phoneNumber"]').fill('0713405723');
-// await page.locator('[id="customer.ssn"]').click();
-// await page.locator('[id="customer.ssn"]').fill('1432');
-// await page.locator('[id="customer.username"]').click();
-// await page.locator('[id="customer.username"]').fill('Njabulo');
-// await page.locator('[id="customer.password"]').click();
-// await page.locator('[id="customer.password"]').fill('Test@01');
-// await page.locator('#repeatedPassword').click();
-// await page.locator('#repeatedPassword').fill('Test@01');
-// await page.getByRole('button', { name: 'Register' }).click();
-// await expect(page.getByRole('heading', { name: 'Welcome Njabulo' })).toBeVisible();
+
 
     
